@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
+import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
@@ -38,6 +39,7 @@ import org.eclipse.swt.browser.StatusTextEvent;
 import org.eclipse.swt.browser.StatusTextListener;
 import org.eclipse.swt.browser.TitleEvent;
 import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.VisibilityWindowListener;
 import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -50,6 +52,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -221,7 +224,9 @@ public class BrowserSim {
 		});
 		setShellAttibutes();
 				
-		BrowserSimBrowser browser = skin.getBrowser();
+		final BrowserSimBrowser browser = skin.getBrowser();
+		final Display display = skin.getShell().getDisplay();
+		initialize(display, browser);
 		controlHandler = new ControlHandlerImpl(browser);
 		skin.setControlHandler(controlHandler);
 		
@@ -261,6 +266,7 @@ public class BrowserSim {
 				skin.statusTextChanged(event.text);
 			}
 		});
+		
 		browser.addLocationListener(new LocationListener() {
 			public void changed(LocationEvent event) {
 				if (event.top) {
@@ -458,6 +464,9 @@ public class BrowserSim {
 				addFileMenuItems(contextMenu);
 				
 				new MenuItem(contextMenu, SWT.BAR);
+				addRippleMenuItems(contextMenu);
+				
+				new MenuItem(contextMenu, SWT.BAR);
 				addAboutItem(contextMenu);
 				
 				new MenuItem(contextMenu, SWT.BAR);
@@ -574,6 +583,116 @@ public class BrowserSim {
 					}
 				}
 			}
+		});
+	}
+	
+	private void addRippleMenuItems(Menu menu) {
+		MenuItem ripple = new MenuItem(menu, SWT.PUSH);
+		ripple.setText("Ripple emulator");
+		ripple.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				final Display display = skin.getBrowser().getDisplay();
+				Shell shell = new Shell(display);
+				shell.setSize(1500, 1000);
+				center(shell); 
+				shell.setLayout(new FillLayout());
+				shell.setText("Ripple Emulator");
+				final Browser browser;
+				try {
+					browser = new Browser(shell, SWT.WEBKIT);
+				} catch (SWTError e) {
+					// TODO: log
+					display.dispose();
+					return;
+				}
+				initialize(display, browser);
+				shell.open();
+				browser.setUrl("http://localhost:8080/ripple-temp/index.html");
+				skin.getShell().dispose();
+			}
+		
+			
+			private void center(Shell shell){
+				Monitor primary = display.getPrimaryMonitor();
+			    Rectangle bounds = primary.getBounds();
+			    Rectangle rect = shell.getBounds();
+			    
+			    int x = bounds.x + (bounds.width - rect.width) / 2;
+			    int y = bounds.y + (bounds.height - rect.height) / 2;
+			    
+			    shell.setLocation(x, y);
+			}
+		});
+	}
+	
+	public void initialize(final Display display, final Browser browser) {
+		browser.addOpenWindowListener(new OpenWindowListener() {
+			public void open(WindowEvent event) {
+				if (!event.required) return;	/* only do it if necessary */
+				Shell shell = new Shell(display);
+				shell.setLayout(new FillLayout());
+				Browser browser = new Browser(shell, SWT.WEBKIT);
+				initialize(display, browser);
+				event.browser = browser;
+			}
+		});
+		browser.addVisibilityWindowListener(new VisibilityWindowListener() {
+			public void hide(WindowEvent event) {
+				Browser browser = (Browser)event.widget;
+				Shell shell = browser.getShell();
+				shell.setVisible(false);
+			}
+			public void show(WindowEvent event) {
+				Browser browser = (Browser)event.widget;
+				final Shell shell = browser.getShell();
+				if (event.location != null) shell.setLocation(event.location);
+				if (event.size != null) {
+					Point size = event.size;
+					shell.setSize(shell.computeSize(size.x, size.y));
+				}
+				shell.open();
+			}
+		});
+		browser.addCloseWindowListener(new CloseWindowListener() {
+			public void close(WindowEvent event) {
+				Browser browser = (Browser)event.widget;
+				Shell shell = browser.getShell();
+				shell.close();
+			}
+		});
+		browser.addLocationListener(new LocationAdapter() {
+			  private BrowserFunction consoleLog = null;
+			  @Override
+			  public void changed(LocationEvent event) {
+			   if (consoleLog != null && !consoleLog.isDisposed()) {
+			    consoleLog.dispose();
+			   }
+			   consoleLog = new BrowserFunction(browser, "_consoleLog") {
+			    @Override
+			    public Object function(Object[] arguments) {
+			     for (Object argument : arguments) {
+			      if (argument != null) {
+			       System.out.print(argument + " ");
+			      }
+			     }
+			     System.out.println();
+			     return super.function(arguments);
+			    }
+			   };
+			   browser.execute("console.debug = console.log = function(){" +
+			    "try {" +
+			     "var a = [];" +
+			     "for (var argument in arguments) {" +
+			      "a[argument] = arguments[argument];" +
+			     "}" +
+			     "var s = JSON.stringify(a);" +
+			     "s = s.substring(1, s.length - 1);" +
+			     "_consoleLog(s);" +
+			    "} catch (err) {" +
+			     "_consoleLog('CANNOT STRINGIFY');" +
+			    "}" +
+			   "}");
+			  }
 		});
 	}
 	
