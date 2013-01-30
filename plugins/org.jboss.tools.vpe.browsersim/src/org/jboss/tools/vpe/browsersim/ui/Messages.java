@@ -30,6 +30,7 @@ public class Messages {
 	public static String BrowserSim_HELP;
 	public static String BrowserSim_OPEN_IN_DEFAULT_BROWSER;
 	public static String BrowserSim_PREFERENCES;
+	public static String BrowserSim_RIPPLE;
 	public static String BrowserSim_TURN_LEFT;
 	public static String BrowserSim_TURN_RIGHT;
 	public static String BrowserSim_USE_SKINS;

@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.UUID;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -28,6 +29,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
+import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
@@ -38,6 +40,7 @@ import org.eclipse.swt.browser.StatusTextEvent;
 import org.eclipse.swt.browser.StatusTextListener;
 import org.eclipse.swt.browser.TitleEvent;
 import org.eclipse.swt.browser.TitleListener;
+import org.eclipse.swt.browser.VisibilityWindowListener;
 import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -47,9 +50,11 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -129,7 +134,7 @@ public class BrowserSim {
 		}
 		
 		
-		DevicesList devicesList = DevicesListStorage.loadUserDefinedDevicesList(standalone);
+		DevicesList devicesList = DevicesListStorage.loadUserDefinedDevicesList();
 		if (devicesList == null) {
 			devicesList = DevicesListStorage.loadDefaultDevicesList();
 		}
@@ -215,7 +220,7 @@ public class BrowserSim {
 			public void widgetDisposed(DisposeEvent e) {
 				
 				if (devicesListHolder != null) {
-					DevicesListStorage.saveUserDefinedDevicesList(devicesListHolder.getDevicesList(), currentLocation, isStandalone);
+					DevicesListStorage.saveUserDefinedDevicesList(devicesListHolder.getDevicesList(), currentLocation);
 				}
 			}
 		});
@@ -339,7 +344,7 @@ public class BrowserSim {
 				BrowserSim browserSim = new BrowserSim(display, homeUrl, isStandalone);
 				int parentDeviceIndex = devicesListHolder.getDevicesList().getSelectedDeviceIndex();
 
-				DevicesList devicesList = DevicesListStorage.loadUserDefinedDevicesList(isStandalone);
+				DevicesList devicesList = DevicesListStorage.loadUserDefinedDevicesList();
 				if (devicesList == null) {
 					devicesList = DevicesListStorage.loadDefaultDevicesList();
 				}
@@ -450,12 +455,15 @@ public class BrowserSim {
 				addDevicesMenuItems(contextMenu);
 				addUseSkinsItem(contextMenu);
 				addPreferencesItem(contextMenu);
-					
+				
 				new MenuItem(contextMenu, SWT.BAR);
 				addTurnMenuItems(contextMenu);
 
 				new MenuItem(contextMenu, SWT.BAR);
 				addFileMenuItems(contextMenu);
+				
+				new MenuItem(contextMenu, SWT.BAR);
+				addRippleItem(contextMenu);
 				
 				new MenuItem(contextMenu, SWT.BAR);
 				addAboutItem(contextMenu);
@@ -576,7 +584,104 @@ public class BrowserSim {
 			}
 		});
 	}
-	
+
+	public void addRippleItem(Menu menu) {
+		MenuItem ripple = new MenuItem(menu, SWT.PUSH);
+		ripple.setText(Messages.BrowserSim_RIPPLE);
+		ripple.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent event) {
+				Display display = skin.getBrowser().getDisplay();
+				Shell shell = new Shell(display);
+				shell.setSize(1500, 1000);
+				center(shell); 
+				shell.setLayout(new FillLayout());
+				shell.setText("Ripple Emulator");
+				final Browser browser;
+				try {
+					browser = new Browser(shell, SWT.WEBKIT);
+				} catch (SWTError e) {
+					// TODO: log
+					display.dispose();
+					return;
+				}
+				initialize(display, browser);
+				shell.open();
+				browser.setUrl("http://localhost:8080/Ripple-UI/www/index.html");
+				skin.getShell().dispose(); // closing BrowserSim
+			}
+			
+			private void center(Shell shell){
+				Monitor primary = display.getPrimaryMonitor();
+			    Rectangle bounds = primary.getBounds();
+			    Rectangle rect = shell.getBounds();
+			    
+			    int x = bounds.x + (bounds.width - rect.width) / 2;
+			    int y = bounds.y + (bounds.height - rect.height) / 2;
+			    
+			    shell.setLocation(x, y);
+			}
+
+			/* register WindowEvent listeners */
+			private void initialize(final Display display, Browser browser) {
+				browser.addOpenWindowListener(new OpenWindowListener() {
+					public void open(WindowEvent event) {
+						BrowserSim browserSim = new BrowserSim(display, homeUrl, isStandalone);
+						int parentDeviceIndex = devicesListHolder.getDevicesList().getSelectedDeviceIndex();
+
+						DevicesList devicesList = DevicesListStorage.loadUserDefinedDevicesList();
+						if (devicesList == null) {
+							devicesList = DevicesListStorage.loadDefaultDevicesList();
+						}
+						devicesList.setSelectedDeviceIndex(parentDeviceIndex);
+						Device defaultDevice = devicesList.getDevices().get(parentDeviceIndex);
+						browserSim.initDevicesListHolder();
+						browserSim.devicesListHolder.setDevicesList(devicesList);
+						
+						browserSim.initSkin(getSkinClass(defaultDevice, devicesList.getUseSkins()), null);
+						
+						browserSim.devicesListHolder.notifyObservers();
+						
+						// set event handlers for Mac OS X Menu-bar
+//						if (cocoaUIEnhancer != null) {
+//							browserSim.addMacOsMenuApplicationHandler(cocoaUIEnhancer);
+//						}
+						
+						event.browser = browserSim.skin.getBrowser();
+						browserSim.skin.getShell().open();
+					}
+				});
+
+				browser.addVisibilityWindowListener(new VisibilityWindowListener() {
+					public void hide(WindowEvent event) {
+						Browser browser = (Browser) event.widget;
+						Shell shell = browser.getShell();
+						shell.setVisible(false);
+					}
+
+					public void show(WindowEvent event) {
+						Browser browser = (Browser) event.widget;
+						final Shell shell = browser.getShell();
+						if (event.location != null)
+							shell.setLocation(event.location);
+						if (event.size != null) {
+							Point size = event.size;
+							shell.setSize(shell.computeSize(size.x, size.y));
+						}
+						shell.open();
+					}
+				});
+
+				browser.addCloseWindowListener(new CloseWindowListener() {
+					public void close(WindowEvent event) {
+						Browser browser = (Browser) event.widget;
+						Shell shell = browser.getShell();
+						shell.close();
+					}
+				});
+			}
+		});
+	}
+
 	public void addAboutItem(Menu menu) {
 		MenuItem about = new MenuItem(menu, SWT.PUSH);
 		about.setText(Messages.BrowserSim_ABOUT);
@@ -925,7 +1030,6 @@ public class BrowserSim {
 		}
 		return new Shell();
 	}
-
 	
 	private void addMacOsMenuApplicationHandler(CocoaUIEnhancer enhancer) {
 		
