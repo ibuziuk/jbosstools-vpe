@@ -95,7 +95,7 @@ public class ServerCreator {
 		ContextHandler wwwContextHandler = new ContextHandler("/");
 		wwwContextHandler.setHandler(wwwResourceHandler);
 		
-		String pluginDir = getPluginDir(resourceBase); 
+		File pluginDir = getPluginDir(resourceBase); 
 		ServletHolder cordovaPluginJsServletHolder = new ServletHolder(new CordovaPluginJsServlet(pluginDir));
 		ServletHandler cordovaPluginJsServetHandler = new ServletHandler();
 		cordovaPluginJsServetHandler.addServletWithMapping(cordovaPluginJsServletHolder, "/cordova_plugins.js");
@@ -131,7 +131,7 @@ public class ServerCreator {
 				String pathInfo = request.getPathInfo(); 
 				String cordovaVersion = getCordovaVersion();
 				
-				if (cordovaVersion.equals(CORDOVA_2)) {
+				if (cordovaVersion.equals(CORDOVA_2)) { // TODO need to change that method in future 
 					if (pathInfo.equals("/cordova.js")){ // JBIDE-14319
 						return "/ripple/cordova/cordova-2.7.0.js";
 					} else if (pathInfo.equals("/cordova_plugins.json")){ // JBIDE-14453
@@ -169,17 +169,22 @@ public class ServerCreator {
 		return server;
 	}
 	
-	private static String getPluginDir(String resourceBase) { 
-		String pluginDir = null;
+	private static File getPluginDir(String resourceBase) { 
 		File file = new File(resourceBase);
-		String parentDir = file.getParent();
-		if (parentDir != null) {
-			pluginDir = parentDir + "/" + PLUGINS_DIR;
+		if (file.exists()) {
+			File parentDir = file.getParentFile();
+			if (parentDir != null) {
+				File pluginDir = new File(parentDir, PLUGINS_DIR);
+				if (pluginDir.exists()) {
+					return pluginDir;
+				}
+			}
 		}
-		return pluginDir;
+		return null;
 	}
 
 	public static String getCordovaVersion() { // TODO need to remove that method in future 
 		return CORDOVA_3; 
 	}
+	
 }

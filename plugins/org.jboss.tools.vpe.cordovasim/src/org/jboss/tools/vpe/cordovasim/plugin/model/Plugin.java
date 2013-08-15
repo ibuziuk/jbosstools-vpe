@@ -30,5 +30,5 @@ public class Plugin {
 	public List<String> getMerges() {
 		return merges;
 	}
-	
+
 }
