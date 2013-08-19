@@ -5,11 +5,19 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
+import org.eclipse.jetty.util.ajax.JSON;
 import org.jboss.tools.vpe.cordovasim.plugin.model.Plugin;
 
 public class CordovaFileUtil {
+	private static final String PLUGINS_DIR = "plugins";
+	private static final String CORDOVA = ".cordova";
+	private static final String CONFIG_JSON = "config.json";
+	private static final String LIB = "lib";
+	private static final String WWW = "www";
+	private static final String VERSION = "version";
 	private static final String FILE = "\"file\": ";
 	private static final String ID = "\"id\": ";
 	private static final String CLOBBERS = "\"clobbers\": [\n";
@@ -78,5 +86,52 @@ public class CordovaFileUtil {
 		}
 		return content;
 	}
+	
+	public static File getPluginDir(String resourceBase) {
+		File parentDir = getParentDir(resourceBase);
+		if (parentDir != null) {
+			File pluginDir = new File(parentDir, PLUGINS_DIR);
+			if (pluginDir.exists()) {
+				return pluginDir;
+			}
+		}
+		return null;
+	}
 
+	public static File getConfigJson(String resourceBase) { 
+		File parentDir = getParentDir(resourceBase);	
+		if (parentDir != null) {
+			File cordovaDir = new File(parentDir, CORDOVA);
+			if (cordovaDir.exists()) {
+				File configJson = new File(cordovaDir, CONFIG_JSON);
+					if (configJson.exists()) {
+						return configJson;
+				}
+			}
+		}
+		return null;
+	}
+	
+	
+	public static String getCordovaVersion(String resourseBase) throws FileNotFoundException { // TODO - need to do this better
+		File configJson = getConfigJson(resourseBase);
+		if (configJson != null) {
+			String content = new Scanner(configJson).useDelimiter("\\A").next();
+			Map map = (Map) JSON.parse(content);
+			Map lib = (Map) map.get(LIB);
+			Map www = (Map) lib.get(WWW);
+			String version = (String) www.get(VERSION);
+			return version;
+		}
+		return null;
+	}
+
+	private static File getParentDir(String childDir) {
+		File file = new File(childDir);
+		if (file.exists()) {
+			return file.getParentFile();
+		}
+		return null;
+	}
+	
 }
