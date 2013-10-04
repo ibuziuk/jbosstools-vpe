@@ -35,7 +35,7 @@ public class ExecScriptFunction extends BrowserFunction {
 				if (success != null) {
 					getBrowser().execute("(" + success + "())");
 				} 
-			} else {
+			} else { //XXX not really good
 				getBrowser().execute("(" + fail + "())");
 			}		
 		}

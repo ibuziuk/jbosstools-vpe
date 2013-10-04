@@ -3,6 +3,8 @@ package org.jboss.tools.vpe.cordovasim.plugins.inappbrowser;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.CloseWindowListener;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.widgets.Composite;
 
@@ -13,7 +15,7 @@ public class InAppBrowserLoader {
 		return Boolean.TRUE.equals(parentBrowser.evaluate("return !!window._csInAppBrowserOpen"));
 	}
 	
-	public static void processInAppBrowser(Browser rippleToolBarBrowser, final Browser browserSimBrowser, WindowEvent openWindowEvent) {
+	public static void processInAppBrowser(final Browser rippleToolBarBrowser, final Browser browserSimBrowser, WindowEvent openWindowEvent) {
 		rippleToolBarBrowser.execute("window._csInAppBrowserOpen = false");
 		final Composite browserSimParentComposite = browserSimBrowser.getParent();
 		final Browser inAppBrowser = new Browser(browserSimParentComposite, SWT.WEBKIT);
@@ -24,11 +26,26 @@ public class InAppBrowserLoader {
 		browserSimParentComposite.layout();
 	
 		inAppBrowser.addCloseWindowListener(new CloseWindowListener() {			
+			
 			@Override
 			public void close(WindowEvent event) {
 				browserSimBrowser.setParent(browserSimParentComposite);
 				inAppBrowser.dispose();
 				browserSimParentComposite.layout();		
+				rippleToolBarBrowser.execute("ripple('event').trigger('browser-close');"); // fire 'exit'
+			}
+		});
+		
+		inAppBrowser.addLocationListener(new LocationListener() {
+			
+			@Override
+			public void changing(LocationEvent event) {
+				rippleToolBarBrowser.execute("ripple('event').trigger('browser-start');"); // fire 'loadstart'
+			}
+			
+			@Override
+			public void changed(LocationEvent event) {
+				rippleToolBarBrowser.execute("ripple('event').trigger('browser-stop');"); // fire 'loadstop'
 			}
 		});
 				
@@ -37,19 +54,3 @@ public class InAppBrowserLoader {
 
 }
 
-
-//inAppBrowser.execute("navigator.__defineGetter__('userAgent', function(){" +
-//"return '" + getUserAgent(browserSimBrowser) + "';" +
-//"});"
-//);
-
-
-//private static String getUserAgent(Browser browser) {
-//	String userAgent = null;
-//	if (browser != null) {
-//		userAgent = (String) browser.evaluate("return window.navigator.userAgent;");
-//	}
-//	
-//	return userAgent;
-//}
-//
