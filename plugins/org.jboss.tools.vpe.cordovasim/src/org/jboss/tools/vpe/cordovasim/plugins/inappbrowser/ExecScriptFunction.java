@@ -2,7 +2,6 @@ package org.jboss.tools.vpe.cordovasim.plugins.inappbrowser;
 
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.BrowserFunction;
-import org.jboss.tools.vpe.cordovasim.plugins.inappbrowser.exception.ExecScriptException;
 
 public class ExecScriptFunction extends BrowserFunction {
 	private Browser inAppBrowser;
