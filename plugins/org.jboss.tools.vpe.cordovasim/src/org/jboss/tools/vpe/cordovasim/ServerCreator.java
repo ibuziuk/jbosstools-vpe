@@ -128,9 +128,9 @@ public class ServerCreator {
 				String pathInfo = request.getPathInfo(); 
 				String cordovaVersion = CordovaFileUtil.getCordovaVersion(resourceBase);
 				
-				if (cordovaVersion.equals("3.0.0")) {
+				if (cordovaVersion.equals("3.1.0")) {
 					if (pathInfo.equals("/cordova.js")) {
-						return "/ripple/cordova/cordova-3.0.0.js";
+						return "/ripple/cordova/cordova-3.1.0.js";
 					}
 					return null;
 				} else { 

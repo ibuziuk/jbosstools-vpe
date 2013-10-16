@@ -114,16 +114,16 @@ public class CordovaFileUtil {
 	
 	
 	public static String getCordovaVersion(String resourseBase) throws FileNotFoundException { // TODO - need to do this better
-		File configJson = getConfigJson(resourseBase);
-		if (configJson != null) {
-			String content = new Scanner(configJson).useDelimiter("\\A").next();
-			Map map = (Map) JSON.parse(content);
-			Map lib = (Map) map.get(LIB);
-			Map www = (Map) lib.get(WWW);
-			String version = (String) www.get(VERSION);
-			return version;
-		}
-		return null;
+//		File configJson = getConfigJson(resourseBase);
+//		if (configJson != null) {
+//			String content = new Scanner(configJson).useDelimiter("\\A").next();
+//			Map map = (Map) JSON.parse(content);
+//			Map lib = (Map) map.get(LIB);
+//			Map www = (Map) lib.get(WWW);
+//			String version = (String) www.get(VERSION);
+//			return version;
+//		}
+		return "3.1.0"/*null*/;
 	}
 
 	private static File getParentDir(String childDir) {
