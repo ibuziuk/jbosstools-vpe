@@ -132,6 +132,8 @@ public class ServerCreator {
 				if (cordovaVersion.equals("3.1.0")) { //$NON-NLS-1$
 					if (pathInfo.equals("/cordova.js")) { //$NON-NLS-1$
 						return "/ripple/cordova/cordova-3.1.0.js"; //$NON-NLS-1$
+ 					} else if (pathInfo.equals("/cordova_plugins.json")) { // XXX need to delete this after multiple version support migration
+						return "/ripple/cordova/cordova_plugins.json";
 					}
 					return null;
 				} else { // Will be implemented in the context of multiple version support issue
