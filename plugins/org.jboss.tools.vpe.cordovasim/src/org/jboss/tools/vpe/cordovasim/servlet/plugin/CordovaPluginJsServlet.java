@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.jboss.tools.vpe.cordovasim.CordovaSimLogger;
 import org.jboss.tools.vpe.cordovasim.plugin.exception.PluginJsException;
 import org.jboss.tools.vpe.cordovasim.plugin.model.PluginIdCache;
 import org.jboss.tools.vpe.cordovasim.plugin.model.Plugin;
@@ -55,12 +56,17 @@ public class CordovaPluginJsServlet extends HttpServlet {
 
 				PluginIdCache.update(plugins); // Cache with mapping plugin's file to id is needed in PluginServlet
 				String content = CordovaFileUtil.generateCordovaPluginsJsContent(plugins);
-
+				
+				if (content == null) {
+					throw new PluginJsException();
+				}
+				
 				resp.setStatus(HttpServletResponse.SC_OK);
 				resp.setContentType(ServletUtil.APPLICATION_JAVASCRIPT_CONTENT_TYPE);
 				resp.setHeader(ServletUtil.ETAG, eTag);
 				resp.getWriter().write(content);
-			} catch (PluginJsException e) { // TODO log the exception
+			} catch (PluginJsException e) {
+				CordovaSimLogger.logError(e.getMessage(), e);
 				resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 		}
