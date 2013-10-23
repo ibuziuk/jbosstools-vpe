@@ -22,8 +22,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.jboss.tools.vpe.browsersim.browser.BrowserSimBrowser;
 import org.jboss.tools.vpe.browsersim.browser.WebKitBrowserFactory;
 import org.jboss.tools.vpe.browsersim.model.Device;
-import org.jboss.tools.vpe.browsersim.ui.BrowserSim;
 import org.jboss.tools.vpe.browsersim.util.BrowserSimUtil;
+import org.jboss.tools.vpe.cordovasim.CustomBrowserSim;
 
 /**
  * @author Ilya Buziuk (ibuziuk)
@@ -35,13 +35,15 @@ public class InAppBrowserLoader {
 		return Boolean.TRUE.equals(parentBrowser.evaluate("return !!window.needToOpenInAppBrowser"));
 	}
 	
-	public static void processInAppBrowser(final Browser rippleToolBarBrowser, BrowserSim browserSim, WindowEvent openWindowEvent) {
+	public static void processInAppBrowser(final Browser rippleToolBarBrowser, final CustomBrowserSim browserSim, WindowEvent openWindowEvent) {
 		rippleToolBarBrowser.execute("window.needToOpenInAppBrowser = false"); 
 		
 		final Browser browserSimBrowser = browserSim.getBrowser();
 		final Composite browserSimParentComposite = browserSimBrowser.getParent();
 		Device device = browserSim.getCurrentDevice();
+		
 		final BrowserSimBrowser inAppBrowser = createInAppBrowser(browserSimParentComposite, browserSimBrowser, device); 
+		browserSim.setInAppBrowser(inAppBrowser);
 		
 		browserSimBrowser.setParent(inAppBrowser); // hiding browserSim's browser by changing it's parent   
 		openWindowEvent.browser = inAppBrowser;  
@@ -51,6 +53,7 @@ public class InAppBrowserLoader {
 			
 			@Override
 			public void close(WindowEvent event) {
+				browserSim.setInAppBrowser(null);
 				browserSimBrowser.setParent(browserSimParentComposite);
 				inAppBrowser.dispose();
 				browserSimParentComposite.layout();		
@@ -58,7 +61,7 @@ public class InAppBrowserLoader {
 			}
 		});
 		
-		inAppBrowser.addDisposeListener(new DisposeListener() {
+		inAppBrowser.addDisposeListener(new DisposeListener() { // prevent permanent crashes on windows after skin changing
 			
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
@@ -71,15 +74,13 @@ public class InAppBrowserLoader {
 			
 			@Override
 			public void changing(LocationEvent event) {
-//				if (event.top) {
-					if (isChildBrowserPluginPlugged(rippleToolBarBrowser)) {
-						rippleToolBarBrowser
-								.execute("ripple('emulatorBridge').window().ChildBrowser.onLocationChange('"
-										+ event.location + "');"); // fire 'ChildBrowser.onLocationChange' event
-					} else {
-						rippleToolBarBrowser.execute("ripple('event').trigger('browser-start');"); // fire 'loadstart' event
-					}
-//				}
+				if (isChildBrowserPluginPlugged(rippleToolBarBrowser)) {
+					rippleToolBarBrowser
+							.execute("ripple('emulatorBridge').window().ChildBrowser.onLocationChange('"
+									+ event.location + "');"); // fire 'ChildBrowser.onLocationChange' event
+				} else {
+					rippleToolBarBrowser.execute("ripple('event').trigger('browser-start');"); // fire 'loadstart' event
+				}
 			}
 			
 			@Override
