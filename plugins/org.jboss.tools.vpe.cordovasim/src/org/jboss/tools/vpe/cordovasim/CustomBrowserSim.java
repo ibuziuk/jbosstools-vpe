@@ -15,7 +15,6 @@ import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.widgets.Shell;
 import org.jboss.tools.vpe.browsersim.browser.BrowserSimBrowser;
-import org.jboss.tools.vpe.browsersim.browser.PlatformUtil;
 import org.jboss.tools.vpe.browsersim.model.preferences.CommonPreferences;
 import org.jboss.tools.vpe.browsersim.model.preferences.SpecificPreferences;
 import org.jboss.tools.vpe.browsersim.model.preferences.SpecificPreferencesStorage;
@@ -59,20 +58,10 @@ public class CustomBrowserSim extends BrowserSim {
 	@Override
 	@SuppressWarnings("nls")
 	protected void setSelectedDevice(Boolean refreshRequired) {
-		String currentOs = PlatformUtil.getOs();
-		if (inAppBrowser != null && refreshRequired == null 
-				&& (PlatformUtil.OS_LINUX.equals(currentOs) || PlatformUtil.OS_MACOSX.equals(currentOs))) {
-			inAppBrowser.dispose(); // disposing inAppBrowser for Linux and Mac OS. Unfortunately this solution doesn't work on Windows
-			this.inAppBrowser = null;
-			rippleToolSuiteBrowser.execute("(function(){ripple('platform/cordova/3.0.0/bridge/inappbrowser').close();})()");
-		}
-		
+		if (inAppBrowser != null && refreshRequired == null) {
+			rippleToolSuiteBrowser.execute("(function(){ripple('platform/cordova/3.0.0/bridge/inappbrowser').close();})()"); 
+		}		
 		super.setSelectedDevice(refreshRequired);
-		
-		if (inAppBrowser != null && refreshRequired == null && PlatformUtil.OS_WIN32.equals(currentOs)) { 
-			rippleToolSuiteBrowser.refresh(); // have to make a full refresh to prevent native error on Windows
-			this.inAppBrowser = null;
-		} 
 	}
 	
 	@Override

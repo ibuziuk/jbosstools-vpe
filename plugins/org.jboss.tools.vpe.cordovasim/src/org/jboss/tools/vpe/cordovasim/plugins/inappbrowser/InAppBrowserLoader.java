@@ -16,8 +16,7 @@ import org.eclipse.swt.browser.CloseWindowListener;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.WindowEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.jboss.tools.vpe.browsersim.browser.BrowserSimBrowser;
 import org.jboss.tools.vpe.browsersim.browser.WebKitBrowserFactory;
@@ -42,38 +41,31 @@ public class InAppBrowserLoader {
 		
 		final Browser browserSimBrowser = browserSim.getBrowser();
 		final Composite browserSimParentComposite = browserSimBrowser.getParent();
+		final StackLayout stackLayout = (StackLayout) browserSimParentComposite.getLayout();
 		Device device = browserSim.getCurrentDevice();
 		
 		final BrowserSimBrowser inAppBrowser = createInAppBrowser(browserSimParentComposite, browserSimBrowser, device); 
 		browserSim.setInAppBrowser(inAppBrowser);
-		
-		browserSimBrowser.setParent(inAppBrowser); // hiding browserSim's browser by changing it's parent   
+
+		stackLayout.topControl = inAppBrowser; // hiding browserSim's browser and showing inAppBrowser 
 		openWindowEvent.browser = inAppBrowser;  
 		browserSimParentComposite.layout();
-	
+			
 		BrowserSimUtil.setCustomScrollbarStylesForWindows(inAppBrowser);
+		
 		inAppBrowser.addCloseWindowListener(new CloseWindowListener() {			
 			
 			@Override
 			public void close(WindowEvent event) {
 				browserSim.setInAppBrowser(null);
-				browserSimBrowser.setParent(browserSimParentComposite);
+				stackLayout.topControl = browserSimBrowser;
+				browserSimParentComposite.layout();	
 				inAppBrowser.dispose();
-				browserSimParentComposite.layout();		
 				rippleToolSuiteBrowser.execute("ripple('event').trigger('browser-close');"); // fire 'exit' for inAppBrowser
 				rippleToolSuiteBrowser.execute("ripple('emulatorBridge').window().ChildBrowser.onClose();"); // fire 'close' for childBrowser
 			}
 		});
-		
-		inAppBrowser.addDisposeListener(new DisposeListener() { // prevent permanent crashes on windows after skin changing
-			
-			@Override
-			public void widgetDisposed(DisposeEvent e) {
-				browserSimBrowser.setParent(browserSimParentComposite);
-				browserSimParentComposite.layout();		
-			}
-		});
-		
+
 		inAppBrowser.addLocationListener(new LocationListener() {
 			
 			@Override
