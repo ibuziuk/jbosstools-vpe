@@ -20,6 +20,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.jboss.tools.vpe.browsersim.BrowserSimArgs;
 import org.jboss.tools.vpe.browsersim.browser.ExtendedCloseWindowListener;
 import org.jboss.tools.vpe.browsersim.browser.ExtendedVisibilityWindowListener;
 import org.jboss.tools.vpe.browsersim.browser.ExtendedWindowEvent;
@@ -85,7 +86,7 @@ public class FireBugLiteLoader {
 		Shell shell = new Shell(BrowserSimUtil.getParentShell(skin), SWT.SHELL_TRIM);
 		shell.setLayout(new FillLayout());
 		
-		final IBrowser fireBugBrowser = new WebKitBrowserFactory().createBrowser(shell, SWT.WEBKIT);
+		final IBrowser fireBugBrowser = new WebKitBrowserFactory().createBrowser(shell, SWT.WEBKIT, BrowserSimArgs.isJavaFx);
 		openWindowEvent.browser = fireBugBrowser;
 		
 		fireBugBrowser.addVisibilityWindowListener(new ExtendedVisibilityWindowListener() {
@@ -111,10 +112,14 @@ public class FireBugLiteLoader {
 		
 		skin.getShell().addDisposeListener(new DisposeListener() {
 			@Override
-			public void widgetDisposed(DisposeEvent arg0) {
-				if (!fireBugBrowser.isDisposed() && !fireBugBrowser.getShell().isDisposed()) {
-					fireBugBrowser.getShell().dispose();
-				}
+			public void widgetDisposed(DisposeEvent event) {
+				Display.getDefault().asyncExec(new Runnable() {
+					public void run() {
+						if (!fireBugBrowser.isDisposed() && !fireBugBrowser.getShell().isDisposed()) {
+							fireBugBrowser.getShell().dispose();
+						}
+					}
+				});
 			}
 		});
 		
@@ -128,15 +133,16 @@ public class FireBugLiteLoader {
 					}
 				}
 			});
-		} else {
-			fireBugBrowser.addCloseWindowListener(new ExtendedCloseWindowListener() {
-				@Override
-				public void close(ExtendedWindowEvent event) {
-					IBrowser browser = (IBrowser)event.widget;
-					Shell shell = browser.getShell();
-					shell.close();
-				}
-			});
-		}
+		} 
+		
+		fireBugBrowser.addCloseWindowListener(new ExtendedCloseWindowListener() {
+			@Override
+			public void close(ExtendedWindowEvent event) {
+				IBrowser browser = (IBrowser) event.widget;
+				Shell shell = browser.getShell();
+				shell.close();
+			}
+		});
+		
 	}
 }
