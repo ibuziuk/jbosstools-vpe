@@ -13,10 +13,9 @@ package org.jboss.tools.vpe.browsersim.ui.menu;
 import java.util.Map;
 import java.util.UUID;
 
+import javafx.application.Platform;
+
 import org.eclipse.swt.SWT;
-import org.jboss.tools.vpe.browsersim.BrowserSimArgs;
-import org.jboss.tools.vpe.browsersim.browser.IBrowser;
-import org.jboss.tools.vpe.browsersim.browser.WebKitBrowserFactory;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.ProgressEvent;
@@ -35,6 +34,9 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.jboss.tools.vpe.browsersim.BrowserSimArgs;
+import org.jboss.tools.vpe.browsersim.browser.IBrowser;
+import org.jboss.tools.vpe.browsersim.browser.WebKitBrowserFactory;
 import org.jboss.tools.vpe.browsersim.model.Device;
 import org.jboss.tools.vpe.browsersim.model.preferences.BrowserSimSpecificPreferences;
 import org.jboss.tools.vpe.browsersim.model.preferences.CommonPreferences;
@@ -58,6 +60,7 @@ public class ToolsMenuCreator {
 		Menu subMenu = new Menu(debug);
 		addFireBugLiteItem(subMenu, skin);
 		addWeinreItem(subMenu, skin, weinreScriptUrl, weinreClientUrl);
+		addDevToolsItem(subMenu, skin);
 		debug.setMenu(subMenu);
 	}
 	
@@ -88,7 +91,17 @@ public class ToolsMenuCreator {
 					injectUrl(skin.getBrowser(), weinreScriptUrl, id);
 				}
 
-				createWeinreShell(skin, clientUrl + "#" + id, weinreScriptUrl, id).open();
+				createWeinreShell(skin, clientUrl + "#" + id, weinreScriptUrl, id).open(); //$NON-NLS-1$
+			}
+		});
+	}
+	
+	private static void addDevToolsItem(Menu menu, final BrowserSimSkin skin) {
+		MenuItem weinre = new MenuItem(menu, SWT.PUSH);
+		weinre.setText(Messages.BrowserSim_DEV_TOOLS);
+		weinre.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				Platform.runLater(new DevToolsDebugger());
 			}
 		});
 	}
