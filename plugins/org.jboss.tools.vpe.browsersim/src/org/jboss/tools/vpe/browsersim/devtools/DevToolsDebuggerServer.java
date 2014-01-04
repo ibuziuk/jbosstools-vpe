@@ -27,7 +27,7 @@ public class DevToolsDebuggerServer {
     	
     	ResourceHandler resourceHandler = new ResourceHandler();
     	resourceHandler.setDirectoriesListed(true);
-    	resourceHandler.setResourceBase("./inspector-front-end");
+    	resourceHandler.setResourceBase("./front-end");
     	
     	HandlerList handlerList = new HandlerList();
     	handlerList.setHandlers(new Handler[]{servletHandler, resourceHandler});

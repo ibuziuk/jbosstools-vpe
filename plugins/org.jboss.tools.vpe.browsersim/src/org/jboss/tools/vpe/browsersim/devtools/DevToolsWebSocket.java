@@ -2,6 +2,8 @@ package org.jboss.tools.vpe.browsersim.devtools;
 
 import java.io.IOException;
 
+import javafx.application.Platform;
+
 import javax.servlet.ServletContext;
 
 import org.eclipse.jetty.websocket.WebSocket;
@@ -41,7 +43,18 @@ public class DevToolsWebSocket implements WebSocket.OnTextMessage {
 		DevToolsDebuggerServer.sendMessageToBrowser(data);
 	}
 
-	public void sendMessage(String data) throws IOException  {
-		connection.sendMessage(data);
+	public void sendMessage(final String data) throws IOException  {
+		Platform.runLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				try {
+					connection.sendMessage(data);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+		});
 	}
 }
