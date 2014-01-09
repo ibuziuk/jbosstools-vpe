@@ -18,6 +18,8 @@ import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 
+import javafx.application.Platform;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
@@ -455,18 +457,14 @@ public class BrowserSim {
 	private void initLiveReloadLocationAdapter() {
 		liveReloadLocationAdapter = new LocationAdapter() {
 			@Override
-			public void changed(LocationEvent event) {
+			public void changed(final LocationEvent event) {
 				if (isLivereloadAvailable()) {
-					IBrowser browser = (IBrowser) event.widget;
-					browser.execute("if (!window.LiveReload) {" + //$NON-NLS-1$
-										"window.addEventListener('load', function(){" + //$NON-NLS-1$
-											"var e = document.createElement('script');" + //$NON-NLS-1$
-											"e.type = 'text/javascript';" + //$NON-NLS-1$
-											"e.async = 'true';" + //$NON-NLS-1$
-											"e.src = 'http://localhost:" + specificPreferences.getLiveReloadPort() + "/livereload.js';" + //$NON-NLS-1$ //$NON-NLS-2$
-											"document.head.appendChild(e);" + //$NON-NLS-1$
-										"});" + //$NON-NLS-1$
-									"}"); //$NON-NLS-1$
+					Platform.runLater(new Runnable() {
+						@Override
+						public void run() {
+							processLiveReloadEvent(event);
+						}
+					});
 				} else {
 					MessageBox warning = new MessageBox(parentShell, SWT.ICON_WARNING);
 					warning.setText(Messages.WARNING);
@@ -490,6 +488,19 @@ public class BrowserSim {
 		} catch (Exception e) {
 			return false;
 		}
+	}
+	
+	private void processLiveReloadEvent(final LocationEvent event) {
+		IBrowser browser = (IBrowser) event.widget;
+		browser.execute("if (!window.LiveReload) {" + //$NON-NLS-1$
+				"window.addEventListener('load', function(){" + //$NON-NLS-1$
+					"var e = document.createElement('script');" + //$NON-NLS-1$
+					"e.type = 'text/javascript';" + //$NON-NLS-1$
+					"e.async = 'true';" + //$NON-NLS-1$
+					"e.src = 'http://localhost:" + specificPreferences.getLiveReloadPort() + "/livereload.js';" + //$NON-NLS-1$ //$NON-NLS-2$
+					"document.head.appendChild(e);" + //$NON-NLS-1$
+				"});" + //$NON-NLS-1$
+			"}"); //$NON-NLS-1$
 	}
 	
 	private void initTouchEventsLocationAdapter() {
