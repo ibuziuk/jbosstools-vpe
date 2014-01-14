@@ -506,8 +506,14 @@ public class BrowserSim {
 	private void initTouchEventsLocationAdapter() {
 		touchEventsLocationAdapter = new LocationAdapter() {
 			@Override
-			public void changed(LocationEvent event) {
-				TouchSupportLoader.initTouchEvents((IBrowser) event.widget);
+			public void changed(final LocationEvent event) {
+				Platform.runLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						TouchSupportLoader.initTouchEvents((IBrowser) event.widget);						
+					}
+				});
 			}
 		};
 	}

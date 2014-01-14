@@ -10,6 +10,8 @@
  ******************************************************************************/
 package org.jboss.tools.vpe.cordovasim.events;
 
+import javafx.application.Platform;
+
 import org.jboss.tools.vpe.browsersim.browser.IBrowser;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
@@ -22,20 +24,29 @@ public class RippleInjector extends LocationAdapter {
 	@SuppressWarnings("nls")
 	@Override
 	public void changed(LocationEvent event) {
-		IBrowser browser = (IBrowser) event.widget;
+		final IBrowser browser = (IBrowser) event.widget;
 		if (event.top) {
-			browser.execute(
-					/* We have to remember userAgent of the BrowserSim, cause window.navigator object would be overridden by ripple
-					 * (see define function of the 'platform/w3c/1.0/navigator' in ripple.js and JBIDE-14652) */
-					"window.bsUserAgent = window.navigator.userAgent;" + 
-					"window.opener.document.getElementById('userAgentInfo').innerHTML = bsUserAgent;" + 
-					/* Cordova's InAppBrowser API overrides window.open function, so we have to remember it for FireBug Lite
-					 * (see FireBugLiteLoader.java and JBIDE-14625) */
-					"window._bsOriginalWindowOpen = window._bsOriginalWindowOpen || window.open;" + 
-					"if (window.opener.ripple) {" +
-						"window.opener.ripple('bootstrap').inject(window, document);" + 
-					"}"); 
-			browser.forceFocus();
+			Platform.runLater(new Runnable() {
+				@Override
+				public void run() {
+					injectRippleScript(browser);					
+				}
+			});
 		}
+	}
+	
+	private void injectRippleScript(final IBrowser browser) {
+		browser.execute(
+				/* We have to remember userAgent of the BrowserSim, cause window.navigator object would be overridden by ripple
+				 * (see define function of the 'platform/w3c/1.0/navigator' in ripple.js and JBIDE-14652) */
+				"window.bsUserAgent = window.navigator.userAgent;" + 
+				"window.opener.document.getElementById('userAgentInfo').innerHTML = bsUserAgent;" + 
+				/* Cordova's InAppBrowser API overrides window.open function, so we have to remember it for FireBug Lite
+				 * (see FireBugLiteLoader.java and JBIDE-14625) */
+				"window._bsOriginalWindowOpen = window._bsOriginalWindowOpen || window.open;" + 
+				"if (window.opener.ripple) {" +
+					"window.opener.ripple('bootstrap').inject(window, document);" + 
+				"}"); 
+		browser.forceFocus();
 	}
 }
