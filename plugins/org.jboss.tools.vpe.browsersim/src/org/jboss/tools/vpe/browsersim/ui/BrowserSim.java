@@ -396,26 +396,18 @@ public class BrowserSim {
 				skin.getBrowser().removeProgressListener(progressListener);
 				skin.getBrowser().getShell().dispose();
 				
-				Platform.runLater(new Runnable() {
-					
-					@Override
-					public void run() {
-						initSkin(newSkinClass, currentLocation, parentShell);
-						fireSkinChangeEvent();
+				if (specificPreferences.isJavaFx()) {
+					Platform.runLater(new Runnable() {
 						
-						setOrientation(specificPreferences.getOrientationAngle(), device);
-						skin.getBrowser().setUserAgent(device.getUserAgent());
-						
-						processLiveReload(specificPreferences.isEnableLiveReload());
-						processTouchEvents(specificPreferences.isEnableTouchEvents());
-						
-						if (oldSkinUrl != null && isUrlResettingNeededAfterSkinChange()) {
-							skin.getBrowser().setUrl(oldSkinUrl); // skin (and browser instance) is changed
+						@Override
+						public void run() {
+							changeSkinOrEngine(newSkinClass, device, currentLocation, oldSkinUrl);
 						}
-						
-						skin.getShell().open();
-					}
-				});
+					});
+				} else {
+					changeSkinOrEngine(newSkinClass, device, currentLocation, oldSkinUrl);
+				}
+				
 			} else {
 				setOrientation(specificPreferences.getOrientationAngle(), device);
 				skin.getBrowser().setUserAgent(device.getUserAgent());
@@ -432,6 +424,23 @@ public class BrowserSim {
 
 		} 
 	} 
+	
+	private void changeSkinOrEngine(Class<? extends BrowserSimSkin> newSkinClass, Device device,  Point currentLocation, String oldSkinUrl) {
+		initSkin(newSkinClass, currentLocation, parentShell);
+		fireSkinChangeEvent();
+		
+		setOrientation(specificPreferences.getOrientationAngle(), device);
+		skin.getBrowser().setUserAgent(device.getUserAgent());
+		
+		processLiveReload(specificPreferences.isEnableLiveReload());
+		processTouchEvents(specificPreferences.isEnableTouchEvents());
+		
+		if (oldSkinUrl != null && isUrlResettingNeededAfterSkinChange()) {
+			skin.getBrowser().setUrl(oldSkinUrl); // skin (and browser instance) is changed
+		}
+		
+		skin.getShell().open();
+	}
 	
 	protected boolean isUrlResettingNeededAfterSkinChange() {
 		return true; // JBIDE-14636
