@@ -43,7 +43,14 @@ public class BrowserSimRunner {
 			if (PlatformUtil.OS_MACOSX.equals(PlatformUtil.getOs())) {
 				CocoaUIEnhancer.initializeMacOSMenuBar(Messages.BrowserSim_BROWSER_SIM);
 			}
-			boolean isJavaFxAvailable = BrowserSimUtil.loadJavaFX();
+			
+			boolean isJavaFxAvailable;
+			if (PlatformUtil.OS_LINUX.equals(PlatformUtil.getOs())) {
+				isJavaFxAvailable = false; // JavaFx web engine is not supported on Linux
+			} else {
+				isJavaFxAvailable = BrowserSimUtil.loadJavaFX();
+			}
+			
 			BrowserSimArgs browserSimArgs = BrowserSimArgs.parseArgs(args);
 			
 			String path = browserSimArgs.getPath();

@@ -58,7 +58,7 @@ public class CordovaSimRunner {
 	private static Server server;
 	private static Display display;
 	
-	private static boolean javaFxAvailable;
+	private static boolean isJavaFxAvailable;
 
 	/**
 	 * @param args
@@ -71,11 +71,16 @@ public class CordovaSimRunner {
 		display = Display.getDefault();
 		
 		CordovaSimArgs.parseArgs(args);
-		javaFxAvailable = BrowserSimUtil.loadJavaFX();
-		if (javaFxAvailable) {
-			BrowserSimUtil.loadEngines();
+
+		if (PlatformUtil.OS_LINUX.equals(PlatformUtil.getOs())) {
+			isJavaFxAvailable = false; // JavaFx web engine is not supported on Linux
+		} else {
+			isJavaFxAvailable = BrowserSimUtil.loadJavaFX();
 		}
-		
+
+		if (isJavaFxAvailable) {
+			BrowserSimUtil.loadEngines();
+		}	
 		run();
 	}
 	
@@ -172,7 +177,7 @@ public class CordovaSimRunner {
 		CordovaSimArgs.setPort(port);
 
 		final CordovaSimSpecificPreferences sp = loadPreferences();
-		if (!javaFxAvailable) {
+		if (!isJavaFxAvailable) {
 			sp.setJavaFx(false);
 		}
 		
