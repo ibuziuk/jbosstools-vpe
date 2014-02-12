@@ -26,4 +26,9 @@ public enum MessageType {
 	public String toString() {
 		return type;
 	}
+
+	public String getType() {
+		return type;
+	}
+	
 }

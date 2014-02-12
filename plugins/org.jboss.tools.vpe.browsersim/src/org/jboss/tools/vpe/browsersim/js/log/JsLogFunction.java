@@ -21,9 +21,11 @@ import org.jboss.tools.vpe.browsersim.browser.IBrowserFunction;
  * @author Ilya Buziuk (ibuziuk)
  */
 public class JsLogFunction implements IBrowserFunction {
-	private MessageType type; 
+	private IBrowser browser;
+	private MessageType type;
 
 	public JsLogFunction(IBrowser browser, MessageType type) {
+		this.browser = browser;
 		this.type = type;
 	}
 
@@ -37,14 +39,35 @@ public class JsLogFunction implements IBrowserFunction {
 				message.append(argument.toString() + " "); //$NON-NLS-1$
 			}
 			JsConsoleLogger.log(message.toString());
+			executeOriginalFunction(type, message.toString());
 		}
 		return null;
+	}
+
+	private void executeOriginalFunction(MessageType type, String message) {
+		switch (type) {
+		case INFO:
+			browser.execute(ConsoleLogConstants.BROSERSIM_CONSOLE_INFO + "(" + message +")"); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		
+		case WARN:
+			browser.execute(ConsoleLogConstants.BROSERSIM_CONSOLE_WARN + "(" + message +")"); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		
+		case ERROR:
+			browser.execute(ConsoleLogConstants.BROSERSIM_CONSOLE_ERROR + "(" + message +")"); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+			
+		default: // console.log()
+			browser.execute(ConsoleLogConstants.BROSERSIM_CONSOLE_LOG + "(" + message +")"); //$NON-NLS-1$ //$NON-NLS-2$
+			break;
+		}
 	}
 
 	public void addTypeInfo(Object[] arguments, MessageType type) {
 		if (type != null && arguments != null && arguments.length >= 1) {
 			arguments[0] = type.toString() + ": " + arguments[0]; //$NON-NLS-1$
-		}
+		} 
 	}
 	
 }

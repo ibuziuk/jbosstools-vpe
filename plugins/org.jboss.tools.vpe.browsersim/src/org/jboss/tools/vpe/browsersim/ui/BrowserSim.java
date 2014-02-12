@@ -73,6 +73,7 @@ import org.jboss.tools.vpe.browsersim.ui.skin.BrowserSimSkin;
 import org.jboss.tools.vpe.browsersim.ui.skin.ResizableSkinSizeAdvisor;
 import org.jboss.tools.vpe.browsersim.ui.skin.ResizableSkinSizeAdvisorImpl;
 import org.jboss.tools.vpe.browsersim.util.BrowserSimUtil;
+import org.jboss.tools.vpe.browsersim.js.log.ConsoleLogConstants;
 
 /**
  * @author Yahor Radtsevich (yradtsevich)
@@ -366,9 +367,7 @@ public class BrowserSim {
 			}
 		});
 		
-		if (!specificPreferences.isJavaFx()) {
-			overrideJsConsoleLog(browser); // JBIDE-15932
-		}
+		overrideJsConsoleLog(browser); // JBIDE-15932		
 	}
 	
 	// JBIDE-15932 need to display console logs especially during startup
@@ -381,26 +380,35 @@ public class BrowserSim {
 				if (PlatformUtil.OS_LINUX.equals(PlatformUtil.getOs())) {
 					createLogFunctions(browser); // TODO need to do this better
 				}
-				browser.execute("(function(){"
-										+ "if (window.console && console.log) {"
-										+	"window.console.log = browserSimConsoleLog;"
-										+	"window.console.info = browserSimConsoleInfo;"
-										+	"window.console.warn = browserSimConsoleWarn;" 
-										+	"window.console.error = browserSimConsoleError;"
+				browser.execute("(function() {"
+										+ "if (window.console) {"
+										// Saving original main console functions -  see JsLogFunction.java
+										+   ConsoleLogConstants.ORIGINAL_CONSOLE_LOG   + " = window.console.log;" 
+										+   ConsoleLogConstants.ORIGINAL_CONSOLE_INFO  + " = window.console.info;"
+										+   ConsoleLogConstants.ORIGINAL_CONSOLE_WARN  + " = window.console.warn;"
+										+   ConsoleLogConstants.ORIGINAL_CONSOLE_ERROR + " = window.console.error;"
+										
+										// Overriding main console functions with an SWT browser function
+										+	"window.console.log = "   + ConsoleLogConstants.BROSERSIM_CONSOLE_LOG + ";"
+										+	"window.console.info = "  + ConsoleLogConstants.BROSERSIM_CONSOLE_INFO + ";"
+										+	"window.console.warn = "  + ConsoleLogConstants.BROSERSIM_CONSOLE_WARN  + ";"
+										+	"window.console.error = " + ConsoleLogConstants.BROSERSIM_CONSOLE_ERROR + ";"
+										
+										// Overriding window.onerror 
 										+	"window.onerror = function(msg, url, lineNumber) {"
-										+		"console.log('ERROR: ' + msg + ' on line ' + lineNumber + ' for ' + url);"
+										+		"console.log('ERROR: ' + msg + ' on line ' + lineNumber + ' for ' + url);" // XXX or OK ?
 										+	"}"
 										+ "}"
-								+ "})()");
+								+ "})();");
 			}
 		});
 	}
 
 	private void createLogFunctions(IBrowser browser) {
-		browser.registerBrowserFunction("browserSimConsoleLog", new JsLogFunction(browser,  null)); //$NON-NLS-1$  
-		browser.registerBrowserFunction("browserSimConsoleInfo", new JsLogFunction(browser,  MessageType.INFO)); //$NON-NLS-1$  
-		browser.registerBrowserFunction("browserSimConsoleWarn", new JsLogFunction(browser,  MessageType.WARN)); //$NON-NLS-1$  
-		browser.registerBrowserFunction("browserSimConsoleError", new JsLogFunction(browser,  MessageType.ERROR)); //$NON-NLS-1$  
+		browser.registerBrowserFunction(ConsoleLogConstants.BROSERSIM_CONSOLE_LOG, new JsLogFunction(browser,  null)); 
+		browser.registerBrowserFunction(ConsoleLogConstants.BROSERSIM_CONSOLE_INFO, new JsLogFunction(browser,  MessageType.INFO));  
+		browser.registerBrowserFunction(ConsoleLogConstants.BROSERSIM_CONSOLE_WARN, new JsLogFunction(browser,  MessageType.WARN));  
+		browser.registerBrowserFunction(ConsoleLogConstants.BROSERSIM_CONSOLE_ERROR, new JsLogFunction(browser,  MessageType.ERROR));  
 	}
 
 	private void initObservers() {
