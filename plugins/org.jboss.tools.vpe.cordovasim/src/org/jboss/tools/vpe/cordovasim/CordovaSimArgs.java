@@ -27,6 +27,7 @@ public class CordovaSimArgs {
 	
 	private static String rootFolder;
 	private static String startPage;
+	private static String cordovaEngineLocation;
 	private static int port;
 	private static boolean restartRequired;
 
@@ -36,8 +37,18 @@ public class CordovaSimArgs {
 		if (!BrowserSimArgs.standalone) {
 			params.remove(BrowserSimArgs.NOT_STANDALONE);
 		}
-		
+	
 		restartRequired = false;
+		
+		int engineParameterIndex = params.indexOf("-engine"); //$NON-NLS-1$
+		if (engineParameterIndex >= 0) {
+			params.remove(engineParameterIndex);
+			cordovaEngineLocation = params.remove(engineParameterIndex);
+			System.out.println(cordovaEngineLocation);
+		} else {
+			cordovaEngineLocation = null;
+		}
+		
 		int portParameterIndex = params.indexOf("-port"); //$NON-NLS-1$
 		if (portParameterIndex >= 0) {
 			params.remove(portParameterIndex);
@@ -84,6 +95,10 @@ public class CordovaSimArgs {
 		return port;
 	}
 	
+	public static String getCordovaEngineLocation() {
+		return cordovaEngineLocation;
+	}
+	
 	public static void setPort(int port) {
 		CordovaSimArgs.port = port;
 	}
@@ -95,4 +110,5 @@ public class CordovaSimArgs {
 	public static void setRestartRequired(boolean restartRequired) {
 		CordovaSimArgs.restartRequired = restartRequired;
 	}
+
 }
