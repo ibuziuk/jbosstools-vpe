@@ -12,6 +12,7 @@ package org.jboss.tools.vpe.cordovasim.eclipse.launch.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -32,6 +33,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.jboss.tools.aerogear.hybrid.core.HybridProject;
+import org.jboss.tools.aerogear.hybrid.core.engine.HybridMobileEngine;
+import org.jboss.tools.aerogear.hybrid.core.engine.HybridMobileLibraryResolver;
+import org.jboss.tools.aerogear.hybrid.core.engine.PlatformLibrary;
 import org.jboss.tools.vpe.cordovasim.eclipse.Activator;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
@@ -39,11 +44,13 @@ import org.xml.sax.SAXException;
 
 /**
  * @author "Yahor Radtsevich (yradtsevich)"
+ * @author "Ilya Buziuk (ibuziuk)"
  */
 public class CordovaSimLaunchParametersUtil {
 	private static final String AEROGEAR_HYBRID_NATURE_ID = "org.jboss.tools.aerogear.hybrid.core.HybridAppNature"; //$NON-NLS-1$
 	private static final String ANDROID_NATURE_ID = "com.android.ide.eclipse.adt.AndroidNature"; //$NON-NLS-1$
-	
+	private static final String ANDROID_PLATFORM_ID = "android"; //$NON-NLS-1$
+			
 	public static IProject validateAndGetProject(String projectString) throws CoreException {
 		IProject project = getProject(projectString);
 		if (project == null || !project.isOpen()) {
@@ -163,6 +170,49 @@ public class CordovaSimLaunchParametersUtil {
 		return startPage;
 	}
 	
+	
+	/**
+	 * Returns the location of the cordova.js file of the {@link HybridProject}.
+	 * 
+	 * Returns {@code null} if it is not found.
+	 */
+	public static String getCordovaEngineLocation(IProject project) {
+		HybridProject hybridProject = HybridProject.getHybridProject(project);
+		if (hybridProject != null) {
+			HybridMobileEngine activeEngine = hybridProject.getActiveEngine();
+			if (activeEngine != null) {
+				PlatformLibrary platformLibrary = activeEngine.getPlatformLib(ANDROID_PLATFORM_ID);
+				if (platformLibrary != null) {
+					HybridMobileLibraryResolver platformLibraryResolver = platformLibrary.getPlatformLibraryResolver();
+					if (platformLibraryResolver != null) {
+						URL templateFile = platformLibraryResolver.getTemplateFile(HybridMobileLibraryResolver.PATH_CORDOVA_JS);
+						if (templateFile != null) {
+							return templateFile.getFile(); // cordova.js location
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Returns the version of the engine of the {@link HybridProject}.
+	 * 
+	 * Returns {@code null} if it is not found.
+	 */
+	public static String getCordovaVersion(IProject project) {
+		HybridProject hybridProject = HybridProject.getHybridProject(project);
+		if (hybridProject != null) {
+			HybridMobileEngine activeEngine = hybridProject.getActiveEngine();
+			if (activeEngine != null) {
+				return activeEngine.getVersion();
+			}
+		}
+		return null;
+	}
+	
+	
 	/**
 	 * Reads PhoneGap's config.xml and tries to extract the start page name from it.
 	 * 
@@ -226,4 +276,5 @@ public class CordovaSimLaunchParametersUtil {
 		}
 		return null;
 	}
+
 }
