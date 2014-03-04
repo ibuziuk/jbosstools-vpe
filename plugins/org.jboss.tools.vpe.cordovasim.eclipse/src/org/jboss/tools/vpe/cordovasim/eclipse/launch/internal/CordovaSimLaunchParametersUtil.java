@@ -51,7 +51,7 @@ public class CordovaSimLaunchParametersUtil {
 	private static final String AEROGEAR_HYBRID_NATURE_ID = "org.jboss.tools.aerogear.hybrid.core.HybridAppNature"; //$NON-NLS-1$
 	private static final String ANDROID_NATURE_ID = "com.android.ide.eclipse.adt.AndroidNature"; //$NON-NLS-1$
 	private static final String ANDROID_PLATFORM_ID = "android"; //$NON-NLS-1$
-	private static final String IOS_PLATFORM_ID = "android"; //$NON-NLS-1$
+	private static final String IOS_PLATFORM_ID = "ios"; //$NON-NLS-1$
 			
 	public static IProject validateAndGetProject(String projectString) throws CoreException {
 		IProject project = getProject(projectString);
