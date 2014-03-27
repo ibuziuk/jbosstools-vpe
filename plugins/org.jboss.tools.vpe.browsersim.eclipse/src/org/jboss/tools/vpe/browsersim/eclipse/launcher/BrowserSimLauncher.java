@@ -20,8 +20,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.jboss.tools.vpe.browsersim.browser.PlatformUtil;
 import org.jboss.tools.vpe.browsersim.eclipse.Activator;
 import org.jboss.tools.vpe.browsersim.eclipse.Messages;
-import org.jboss.tools.vpe.browsersim.eclipse.callbacks.JsLogCallback;
-import org.jboss.tools.vpe.browsersim.eclipse.callbacks.LogCallback;
 import org.jboss.tools.vpe.browsersim.eclipse.callbacks.OpenFileCallback;
 import org.jboss.tools.vpe.browsersim.eclipse.callbacks.RestartCallback;
 import org.jboss.tools.vpe.browsersim.eclipse.callbacks.ViewSourceCallback;
@@ -37,8 +35,6 @@ public class BrowserSimLauncher {
 	public static final List<ExternalProcessCallback> BROWSERSIM_CALLBACKS = Arrays.asList(
 		new ViewSourceCallback(),
 		new OpenFileCallback(),
-		new LogCallback(),
-		new JsLogCallback(),
 		new RestartCallback()
 	);
 	
