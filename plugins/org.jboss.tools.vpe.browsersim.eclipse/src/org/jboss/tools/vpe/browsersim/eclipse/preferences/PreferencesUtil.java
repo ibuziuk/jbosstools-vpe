@@ -206,4 +206,12 @@ public class PreferencesUtil {
 		} 
 		return null;
 	}
+	
+	public static String argumentsListToString(List<String> list) {
+		String str = ""; //$NON-NLS-1$
+		for (String s : list) {
+			str += s + " "; //$NON-NLS-1$
+ 		}
+		return str;
+	}
 }
