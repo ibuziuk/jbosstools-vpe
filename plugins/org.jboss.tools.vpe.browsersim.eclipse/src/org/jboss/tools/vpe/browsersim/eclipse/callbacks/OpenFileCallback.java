@@ -53,7 +53,10 @@ public class OpenFileCallback implements ExternalProcessCallback {
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				String fileNameToOpen = lastString.substring(OPEN_FILE_COMMAND.length());
+				String stringToParse = lastString;
+				stringToParse = stringToParse.replaceAll("\\r\\n", "");
+				
+				String fileNameToOpen = stringToParse.substring(OPEN_FILE_COMMAND.length());
 				File fileToOpen = new File(fileNameToOpen);
 
 				if (fileToOpen.exists() && fileToOpen.isFile()) {
