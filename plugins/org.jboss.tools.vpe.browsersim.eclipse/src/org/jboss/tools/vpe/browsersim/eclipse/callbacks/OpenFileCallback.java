@@ -54,7 +54,7 @@ public class OpenFileCallback implements ExternalProcessCallback {
 			@Override
 			public void run() {
 				String stringToParse = lastString;
-				stringToParse = stringToParse.replaceAll("\\r\\n", "");
+				stringToParse = stringToParse.replaceAll("\\r\\n", ""); //$NON-NLS-1$ //$NON-NLS-2$
 				
 				String fileNameToOpen = stringToParse.substring(OPEN_FILE_COMMAND.length());
 				File fileToOpen = new File(fileNameToOpen);
