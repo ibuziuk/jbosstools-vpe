@@ -14,7 +14,7 @@ import org.jboss.tools.vpe.cordovasim.model.preferences.CordovaSimSpecificPrefer
 public class CordovaSimManageDeviceDialog extends ManageDevicesDialog {
 	/** @see org.jboss.tools.vpe.browsersim.eclipse.callbacks.RestartCallback */
 	private static final String CORDOVASIM_RESTART_COMMAND = "org.jboss.tools.vpe.cordavasim.command.restart:"; //$NON-NLS-1$
-	private static final String CORDOVASIM_RESTART_COMMAND_END = "org.jboss.tools.vpe.cordavasim.command.restart.end"; //$NON-NLS-1$
+	private static final String PARAMETERS_DELIMITER = "_PARAMETERS_DELIMITER_"; //$NON-NLS-1$
 	
 	public CordovaSimManageDeviceDialog(Shell parent, int style, CommonPreferences oldCommonPreferences,
 			SpecificPreferences oldSpecificPreferences, String currentUrl) {
@@ -37,11 +37,9 @@ public class CordovaSimManageDeviceDialog extends ManageDevicesDialog {
 	
 	@Override
 	protected void sendRestartCommand() {
-		System.out.println(CORDOVASIM_RESTART_COMMAND);
-		System.out.println(CordovaSimArgs.getRootFolder());
-		System.out.println(CordovaSimArgs.getStartPage());
-		System.out.println("-port"); //$NON-NLS-1$
-		System.out.println(CordovaSimArgs.getPort());
-		System.out.println(CORDOVASIM_RESTART_COMMAND_END);
+		System.out.println(CORDOVASIM_RESTART_COMMAND + PARAMETERS_DELIMITER + CordovaSimArgs.getRootFolder() + " " + CordovaSimArgs.getStartPage()  //$NON-NLS-1$
+				+ " -port " + CordovaSimArgs.getPort() //$NON-NLS-1$
+				+ " -engine " + CordovaSimArgs.getCordovaEngineLocation() //$NON-NLS-1$
+				+ " -version " + CordovaSimArgs.getCordovaVersion()); //$NON-NLS-1$		
 	}
 }
