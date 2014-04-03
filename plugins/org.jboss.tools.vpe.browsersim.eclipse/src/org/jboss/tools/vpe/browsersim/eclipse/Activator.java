@@ -13,12 +13,18 @@ package org.jboss.tools.vpe.browsersim.eclipse;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.ui.console.IConsolePageParticipant;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -28,9 +34,11 @@ import org.osgi.framework.BundleContext;
  * @author "Yahor Radtsevich (yradtsevich)"
  */
 public class Activator extends AbstractUIPlugin {
-
+	
 	// The plug-in ID
 	public static final String PLUGIN_ID = "org.jboss.tools.vpe.browsersim.eclipse"; //$NON-NLS-1$
+
+	private Map<StyledText, IConsolePageParticipant> viewers = new HashMap<StyledText, IConsolePageParticipant>();
 
 	// The shared instance
 	private static Activator plugin;
@@ -103,6 +111,22 @@ public class Activator extends AbstractUIPlugin {
 		} catch (IOException ioe) {
 			return null;
 		}
+	}
+	
+	public void addViewer(StyledText viewer, IConsolePageParticipant participant) {
+		viewers.put(viewer, participant);
+	}
+
+	public void removeViewerWithPageParticipant(IConsolePageParticipant participant) {
+		Set<StyledText> toRemove = new HashSet<StyledText>();
+
+		for (StyledText viewer : viewers.keySet()) {
+			if (viewers.get(viewer) == participant)
+				toRemove.add(viewer);
+		}
+
+		for (StyledText viewer : toRemove)
+			viewers.remove(viewer);
 	}
 	
 }

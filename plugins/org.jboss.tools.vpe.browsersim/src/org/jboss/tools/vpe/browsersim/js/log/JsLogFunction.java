@@ -21,7 +21,7 @@ import org.jboss.tools.vpe.browsersim.browser.IBrowserFunction;
  * @author Ilya Buziuk (ibuziuk)
  */
 public class JsLogFunction implements IBrowserFunction {
-	private static final String JS_LOG_PREFIX = "!JavaScript "; //$NON-NLS-1$
+	private static final String JS_LOG_PREFIX = "!JavaScript"; //$NON-NLS-1$
 	private MessageType type;
 
 	public JsLogFunction(IBrowser browser, MessageType type) {
