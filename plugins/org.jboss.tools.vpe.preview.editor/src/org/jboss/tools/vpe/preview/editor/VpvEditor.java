@@ -74,6 +74,7 @@ import org.jboss.tools.vpe.editor.toolbar.VpeToolBarManager;
 import org.jboss.tools.vpe.editor.toolbar.format.FormatControllerManager;
 import org.jboss.tools.vpe.editor.toolbar.format.TextFormattingToolBar;
 import org.jboss.tools.vpe.messages.VpeUIMessages;
+import org.jboss.tools.vpe.preview.core.client.util.ClientUtil;
 import org.jboss.tools.vpe.preview.core.transform.VpvVisualModel;
 import org.jboss.tools.vpe.preview.core.transform.VpvVisualModelHolder;
 import org.jboss.tools.vpe.preview.core.util.ActionBarUtil;
@@ -490,23 +491,14 @@ public class VpvEditor extends EditorPart implements VpvVisualModelHolder, IReus
 	private void formRequestToServer() {
 		IFile ifile = EditorUtil.getFileOpenedInEditor(sourceEditor);
 		if (ifile != null && SuitableFileExtensions.contains(ifile.getFileExtension().toString())) {
-			String url = formUrl(ifile);
-			browser.setUrl(url, null, new String[] {"Cache-Control: no-cache"}); //$NON-NLS-1$
+			int port = Activator.getDefault().getServer().getPort();
+			String url = ClientUtil.formRequestUrl(ifile, port, modelHolderId);
+			browser.setUrl(url); 
 		} else {
 			browser.setUrl(ABOUT_BLANK);
 		}
 	}
-	
-	private String formUrl(IFile ifile) {
-		String projectName = ifile.getProject().getName();
-		String projectRelativePath = ifile.getProjectRelativePath().toString();
-		int port = Activator.getDefault().getServer().getPort();
-		String url = HTTP + LOCALHOST + ":" + port + "/" + projectRelativePath + "?" + PROJECT_NAME + "=" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-				+ projectName + "&" + VIEW_ID + "=" + modelHolderId; //$NON-NLS-1$ //$NON-NLS-2$
-
-		return url;
-	}
-	
+		
 	private void updatePreview() {
 		if (currentJob == null || currentJob.getState() != Job.WAITING) {
 			if (currentJob != null && currentJob.getState() == Job.SLEEPING) {
