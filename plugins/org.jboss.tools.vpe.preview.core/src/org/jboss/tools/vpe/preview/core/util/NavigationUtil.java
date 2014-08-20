@@ -103,10 +103,13 @@ public final class NavigationUtil {
 	}
 
 	public static void disableJsPopUps(Browser browser) {
-		browser.execute ("window.alert = function() {};" + //$NON-NLS-1$
-				"window.confirm = function() {};" + //$NON-NLS-1$
-				"window.prompt = function() {};" + //$NON-NLS-1$
-				"window.open = function() {};"); //$NON-NLS-1$
+		browser.execute("(function() { " + //$NON-NLS-1$
+				                      "window.onerror = function(){return true};" + //$NON-NLS-1$
+				                      "window.alert = function() {};" + //$NON-NLS-1$
+				                      "window.confirm = function() {};" + //$NON-NLS-1$
+				                      "window.prompt = function() {};" + //$NON-NLS-1$
+				                      "window.open = function() {};" + //$NON-NLS-1$
+				        "})();"); //$NON-NLS-1$
 	}
 	
 	public static String removeAnchor(String url) {
